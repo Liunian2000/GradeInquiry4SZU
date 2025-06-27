@@ -1,0 +1,1 @@
+# GradeInquiry4SZU
