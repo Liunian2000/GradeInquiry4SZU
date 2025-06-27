@@ -20,8 +20,8 @@
    - **Firefox**：安装 [Greasemonkey](https://addons.mozilla.org/zh-CN/firefox/addon/greasemonkey/) 或 [Tampermonkey](https://addons.mozilla.org/zh-CN/firefox/addon/tampermonkey/)
    - **Edge**：安装 [Tampermonkey](https://microsoftedge.microsoft.com/addons/detail/tampermonkey/dhdgffkkebhmkfjojejmpbldmpobfkfo)
 
-2. 确保已登录深圳大学教务系统：
-   - 访问 [深圳大学教务系统](https://ehall.szu.edu.cn/jwapp/sys/cjcx/*default/index.do) 并完成登录
+2. 确保已登录深圳大学办事大厅：
+   - 访问 [办事大厅](https://portal.szu.edu.cn/index.html#/) 并打开“成绩查询”应用
 
 ### 安装步骤
 
@@ -350,8 +350,8 @@
 
 ### 使用流程
 
-1. 登录深圳大学教务系统成绩查询页面
-2. 页面右下角会出现一个绿色的"深大成绩"按钮
+1. 登录深圳大学办事大厅成绩查询页面
+2. 页面右上角会出现一个绿色的"深大成绩"按钮
 3. 点击按钮显示查询面板
 4. 点击"开始查询成绩"按钮开始查询
 5. 等待进度条完成，查询结果会显示在面板中
