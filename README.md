@@ -20,7 +20,7 @@ ps：有一说一我觉得这个更好看也更好用[Greasyfork-szu获取详细
 1. 安装浏览器扩展：
    - **Chrome**：安装 [Tampermonkey](https://chrome.google.com/webstore/detail/tampermonkey/dhdgffkkebhmkfjojejmpbldmpobfkfo)
    - **Firefox**：安装 [Greasemonkey](https://addons.mozilla.org/zh-CN/firefox/addon/greasemonkey/) 或 [Tampermonkey](https://addons.mozilla.org/zh-CN/firefox/addon/tampermonkey/)
-   - **Edge**：安装 [Tampermonkey](https://microsoftedge.microsoft.com/addons/detail/tampermonkey/dhdgffkkebhmkfjojejmpbldmpobfkfo)
+   - **Edge**：安装 [Tampermonkey](https://microsoftedge.microsoft.com/addons/detail/篡改猴测试版/fcmfnpggmnlmfebfghbfnillijihnkoh?hl=zh-cn)
 
 2. 确保已登录深圳大学办事大厅：
    - 访问 [办事大厅](https://portal.szu.edu.cn/index.html#/) 并打开“成绩查询”应用
