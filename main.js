@@ -1,8 +1,8 @@
 // ==UserScript==
 // @name         深圳大学平时成绩&期末成绩查询
 // @namespace    http://tampermonkey.net/
-// @version      1.6
-// @description  修复BUG，增加总成绩/等级计算、导出CSV功能，并优化了对100%平时分课程的处理。
+// @version      1.8
+// @description  修复BUG，增加总成绩/等级计算、导出CSV功能，并改为从页面DOM中提取学号和姓名。
 // @author       流年
 // @match        https://ehall.szu.edu.cn/jwapp/sys/cjcx/*
 // @match        https://ehall-443.webvpn.szu.edu.cn/jwapp/sys/cjcx/*
@@ -17,7 +17,9 @@
     let scriptState = {
         isRunning: false,
         courseData: [],
-        container: null
+        container: null,
+        studentId: null,
+        studentName: null
     };
 
     // 注入核心样式 (样式代码保持不变，此处省略以保持简洁)
@@ -59,6 +61,24 @@
     toggleBtn.innerHTML = '深大<br>成绩';
     document.body.appendChild(toggleBtn);
 
+    // [新增] 从页面DOM中提取学号和姓名
+    function getStudentInfoFromPage() {
+        const allTds = document.querySelectorAll('td');
+        for (const td of allTds) {
+            const text = td.textContent.trim();
+            if (text === '学号' && td.nextElementSibling) {
+                scriptState.studentId = td.nextElementSibling.textContent.trim();
+            }
+            if (text === '姓名' && td.nextElementSibling) {
+                scriptState.studentName = td.nextElementSibling.textContent.trim();
+            }
+            // 如果都找到了，就提前退出循环
+            if (scriptState.studentId && scriptState.studentName) {
+                break;
+            }
+        }
+    }
+
     function initContainer() {
         const container = document.createElement('div');
         container.id = 'score-query-container';
@@ -90,6 +110,9 @@
 
         startBtn.addEventListener('click', async () => {
             if (scriptState.isRunning) return;
+
+            // [修改] 调用新函数从页面提取学生信息
+            getStudentInfoFromPage();
 
             scriptState.isRunning = true;
             startBtn.disabled = true;
@@ -174,17 +197,18 @@
                 return;
             }
 
-            const header = "学期,课程名称,平时成绩,平时系数(%),期末成绩,期末系数(%),总成绩,等级\n";
+            const header = "学期,课程号,课程名称,平时成绩,平时系数(%),期末成绩,期末系数(%),总成绩,等级\n";
             const rows = scriptState.courseData.map(course => {
                 const { finalScore, grade } = calculateFinalScoreAndGrade(course);
                 return [
                     `"${course.XNXQDM_DISPLAY}"`,
+                    `"${course.KCH || 'N/A'}"`,
                     `"${course.KCM}"`,
                     course.PSCJ,
                     course.PSCJXS || 'N/A',
                     course.QMCJ,
                     course.QMCJXS || 'N/A',
-                    finalScore, // 已经是整数或'N/A'
+                    finalScore,
                     grade
                 ].join(',');
             }).join('\n');
@@ -194,7 +218,13 @@
             const link = document.createElement("a");
             const url = URL.createObjectURL(blob);
             link.setAttribute("href", url);
-            link.setAttribute("download", "深大成绩单.csv");
+
+            let filename = "深大详细成绩单.csv";
+            if (scriptState.studentId && scriptState.studentName) {
+                filename = `深大详细成绩单-${scriptState.studentId}-${scriptState.studentName}.csv`;
+            }
+            link.setAttribute("download", filename);
+
             link.style.visibility = 'hidden';
             document.body.appendChild(link);
             link.click();
@@ -202,7 +232,6 @@
         });
     }
 
-    // [核心修改] 重写计算总成绩和等级的函数
     function calculateFinalScoreAndGrade(course) {
         const pscj = parseFloat(course.PSCJ);
         const qmcj = parseFloat(course.QMCJ);
@@ -211,23 +240,15 @@
 
         let rawFinalScore;
 
-        // 优先处理特殊情况：平时成绩占100%
         if (pscjxs === 100 && !isNaN(pscj)) {
             rawFinalScore = pscj;
-        }
-        // 处理常规情况：平时和期末成绩共同构成
-        else if (![pscj, qmcj, pscjxs, qmcjxs].some(isNaN)) {
+        } else if (![pscj, qmcj, pscjxs, qmcjxs].some(isNaN)) {
             rawFinalScore = (pscj * pscjxs / 100) + (qmcj * qmcjxs / 100);
-        }
-        // 如果以上条件都不满足，则无法计算
-        else {
+        } else {
             return { finalScore: 'N/A', grade: 'N/A' };
         }
 
-        // 四舍五入到整数
         const finalScore = Math.round(rawFinalScore);
-
-        // 根据整数总成绩评定等级
         let grade = 'F';
         if (finalScore >= 93) grade = 'A+';
         else if (finalScore >= 85) grade = 'A';
