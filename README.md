@@ -7,6 +7,7 @@
 如果你觉得这个项目对你有所帮助的话，帮我点个star咯（嬉皮笑脸）
 
 ps：有一说一我觉得这个更好看也更好用[Greasyfork-szu获取详细成绩](https://greasyfork.org/zh-CN/scripts/529958-szu%E8%8E%B7%E5%8F%96%E8%AF%A6%E7%BB%86%E6%88%90%E7%BB%A9)，po个链接吧
+二编，这个脚本好像用不了了，只剩好看没有好用了（bushi）哈哈哈哈哈哈哈
 
 ## 功能特点
 
