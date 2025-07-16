@@ -25,7 +25,7 @@ ps：有一说一我觉得这个更好看也更好用[Greasyfork-szu获取详细
 2. 油猴扩展已打开开发者模式
 
 4. 确保已登录深圳大学办事大厅：
-   - 访问 [办事大厅](https://portal.szu.edu.cn/index.html#/) 并打开“成绩查询”应用
+   - 访问 [办事大厅](https://ehall.szu.edu.cn/new/index.html) 并打开“成绩查询”应用
 
 ### 安装步骤
 
