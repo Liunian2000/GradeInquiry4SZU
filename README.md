@@ -4,6 +4,8 @@
 
 这是一个油猴(Tampermonkey)脚本，用于查询深圳大学本科课程的平时成绩和期末成绩。脚本通过遍历分数范围(0-100)的方式，从教务系统获取成绩数据并整合展示。该方法灵感来源于 [Matt-Dong123/tools4szu](https://github.com/Matt-Dong123/tools4szu) 项目，在此基础上进行了前端优化和交互增强。
 
+如果你觉得这个项目对你有所帮助的话，帮我点个star咯（嬉皮笑脸）
+
 ps：有一说一我觉得这个更好看也更好用[Greasyfork-szu获取详细成绩](https://greasyfork.org/zh-CN/scripts/529958-szu%E8%8E%B7%E5%8F%96%E8%AF%A6%E7%BB%86%E6%88%90%E7%BB%A9)，po个链接吧
 
 ## 功能特点
