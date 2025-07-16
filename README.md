@@ -22,7 +22,9 @@ ps：有一说一我觉得这个更好看也更好用[Greasyfork-szu获取详细
    - **Firefox**：安装 [Greasemonkey](https://addons.mozilla.org/zh-CN/firefox/addon/greasemonkey/) 或 [Tampermonkey](https://addons.mozilla.org/zh-CN/firefox/addon/tampermonkey/)
    - **Edge**：安装 [Tampermonkey](https://microsoftedge.microsoft.com/addons/detail/篡改猴测试版/fcmfnpggmnlmfebfghbfnillijihnkoh?hl=zh-cn)
 
-2. 确保已登录深圳大学办事大厅：
+2. 油猴扩展已打开开发者模式
+
+4. 确保已登录深圳大学办事大厅：
    - 访问 [办事大厅](https://portal.szu.edu.cn/index.html#/) 并打开“成绩查询”应用
 
 ### 安装步骤
