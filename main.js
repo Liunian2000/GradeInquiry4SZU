@@ -1,9 +1,9 @@
 // ==UserScript==
-// @name         深圳大学平时成绩&期末成绩查询
+// @name         深圳大学平时成绩&期末成绩查询 (优化版)
 // @namespace    http://tampermonkey.net/
-// @version      1.8
-// @description  修复BUG，增加总成绩/等级计算、导出CSV功能，并改为从页面DOM中提取学号和姓名。
-// @author       流年
+// @version      1.9
+// @description  UI优化
+// @author       流年.
 // @match        https://ehall.szu.edu.cn/jwapp/sys/cjcx/*
 // @match        https://ehall-443.webvpn.szu.edu.cn/jwapp/sys/cjcx/*
 // @grant        GM_xmlhttpRequest
@@ -23,38 +23,232 @@
         studentName: null
     };
 
-    // 注入核心样式 (样式代码保持不变，此处省略以保持简洁)
+    // [优化] 注入优化的核心样式
     GM_addStyle(`
-        #score-query-container { position: fixed; top: 30px; right: 30px; width: 480px; background: #fff; border-radius: 12px; padding: 24px; z-index: 99999; box-shadow: 0 12px 32px rgba(0,0,0,0.12); transition: all 0.35s cubic-bezier(0.25, 0.46, 0.45, 0.94); }
-        #score-query-container.hidden { transform: translateX(120%); opacity: 0; pointer-events: none; }
-        #score-query-container h3 { margin: 0; font-size: 18px; font-weight: 600; color: #333; }
-        .header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px; }
-        .close-btn { position: relative; width: 28px; height: 28px; border-radius: 50%; background: #f5f5f5; cursor: pointer; transition: background 0.3s; }
-        .close-btn:hover { background: #ebebeb; }
-        .close-btn::before, .close-btn::after { content: ''; position: absolute; top: 50%; left: 50%; width: 2px; height: 14px; background: #999; transform: translate(-50%, -50%); }
-        .close-btn::before { transform: translate(-50%, -50%) rotate(45deg); }
-        .close-btn::after { transform: translate(-50%, -50%) rotate(-45deg); }
-        #start-query, .export-btn { width: 100%; padding: 12px; margin-bottom: 12px; border: none; border-radius: 8px; color: #fff; font-size: 14px; font-weight: 500; cursor: pointer; transition: all 0.3s; }
-        #start-query { background: linear-gradient(135deg, #4CAF50 0%, #8BC34A 100%); }
-        #start-query:hover { box-shadow: 0 6px 18px rgba(76, 175, 80, 0.25); transform: translateY(-1px); }
-        .export-btn { background: linear-gradient(135deg, #2196F3 0%, #64B5F6 100%); }
-        .export-btn:hover { box-shadow: 0 6px 18px rgba(33, 150, 243, 0.25); transform: translateY(-1px); }
-        #start-query:disabled, .export-btn:disabled { background: #ccc; cursor: not-allowed; box-shadow: none; transform: none; }
-        .progress-container { margin: 8px 0 16px; }
-        .progress-bar { height: 8px; background: #f0f0f0; border-radius: 4px; overflow: hidden; }
-        .progress { height: 100%; background: linear-gradient(90deg, #4CAF50, #8BC34A); width: 0%; transition: width 0.3s ease-in-out; }
-        #status { margin-bottom: 8px; font-size: 14px; color: #666; }
-        #score-results { max-height: 400px; overflow-y: auto; padding-right: 8px; }
-        .course-item { padding: 12px 0; border-bottom: 1px solid #f5f5f5; }
-        .course-item:last-child { border-bottom: none; }
-        .course-item strong { font-size: 15px; color: #333; margin-bottom: 6px; display: block; }
-        .course-item div { font-size: 13px; color: #666; line-height: 1.6; }
-        .final-score { font-weight: bold; color: #e91e63; }
+        /* Main container and general layout */
+        #score-query-container {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            width: 450px;
+            background: #f9f9f9;
+            border-radius: 16px;
+            padding: 20px;
+            z-index: 99999;
+            box-shadow: 0 8px 24px rgba(0,0,0,0.15);
+            transition: transform 0.4s cubic-bezier(0.16, 1, 0.3, 1), opacity 0.4s;
+            display: flex;
+            flex-direction: column;
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+        }
+        #score-query-container.hidden {
+            transform: translateX(110%);
+            opacity: 0;
+            pointer-events: none;
+        }
+
+        /* Header */
+        .sq-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+            padding-bottom: 12px;
+            border-bottom: 1px solid #e0e0e0;
+        }
+        .sq-header h3 {
+            margin: 0;
+            font-size: 1.1rem;
+            font-weight: 600;
+            color: #212121;
+        }
+        .sq-close-btn {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            width: 32px;
+            height: 32px;
+            border: none;
+            background: #e0e0e0;
+            border-radius: 50%;
+            cursor: pointer;
+            transition: background-color 0.2s, transform 0.2s;
+        }
+        .sq-close-btn:hover {
+            background-color: #d1d1d1;
+            transform: rotate(90deg);
+        }
+        .sq-close-btn svg {
+            width: 14px;
+            height: 14px;
+            stroke: #555;
+        }
+
+        /* Main content area */
+        .sq-content {
+            flex-grow: 1;
+            display: flex;
+            flex-direction: column;
+        }
+
+        /* Action Buttons */
+        .sq-actions {
+            display: flex;
+            gap: 12px;
+            margin-bottom: 16px;
+        }
+        .sq-btn {
+            flex-grow: 1;
+            padding: 12px;
+            border: none;
+            border-radius: 8px;
+            color: #fff;
+            font-size: 0.9rem;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.25s ease;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+        }
+        .sq-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+        }
+        .sq-btn:disabled {
+            background: #bdbdbd !important; /* Use important to override gradient */
+            cursor: not-allowed;
+            box-shadow: none;
+            transform: none;
+        }
+        #start-query {
+            background: linear-gradient(135deg, #43A047 0%, #66BB6A 100%);
+        }
+        #export-scores {
+            background: linear-gradient(135deg, #1E88E5 0%, #42A5F5 100%);
+        }
+
+        /* Progress and Status */
+        .progress-container {
+            margin-bottom: 16px;
+        }
+        .progress-bar {
+            height: 6px;
+            background: #e0e0e0;
+            border-radius: 3px;
+            overflow: hidden;
+        }
+        .progress {
+            height: 100%;
+            background: linear-gradient(90deg, #43A047, #81C784);
+            width: 0%;
+            transition: width 0.3s ease-in-out;
+        }
+        #status {
+            margin-bottom: 8px;
+            font-size: 0.85rem;
+            color: #616161;
+            text-align: center;
+            min-height: 20px;
+        }
+
+        /* Results Area */
+        #score-results {
+            max-height: 350px;
+            overflow-y: auto;
+            margin: 0 -12px;
+            padding: 4px 12px;
+        }
+        .course-item {
+            padding: 14px;
+            background: #fff;
+            border: 1px solid #e8e8e8;
+            border-radius: 8px;
+            margin-bottom: 10px;
+            transition: box-shadow 0.2s, transform 0.2s;
+        }
+        .course-item:hover {
+            transform: translateY(-1px);
+            box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+        }
+        .course-item:last-child {
+            margin-bottom: 0;
+        }
+        .course-item strong {
+            font-size: 1rem;
+            color: #333;
+            margin-bottom: 8px;
+            display: block;
+        }
+        .course-item div {
+            font-size: 0.85rem;
+            color: #616161;
+            line-height: 1.7;
+        }
+        .final-score {
+            font-weight: bold;
+            color: #d81b60;
+        }
         #score-results::-webkit-scrollbar { width: 6px; }
-        #score-results::-webkit-scrollbar-thumb { background: #ddd; border-radius: 3px; }
+        #score-results::-webkit-scrollbar-thumb { background: #bdbdbd; border-radius: 3px; }
         #score-results::-webkit-scrollbar-track { background: transparent; }
-        #toggle-btn { position: fixed; top: 30px; right: 30px; width: 52px; height: 52px; background: linear-gradient(135deg, #4CAF50 0%, #8BC34A 100%); color: #fff; border: none; border-radius: 50%; font-size: 14px; font-weight: 500; cursor: pointer; z-index: 99998; box-shadow: 0 6px 18px rgba(76, 175, 80, 0.25); transition: all 0.3s; display: flex; align-items: center; justify-content: center; text-align: center; line-height: 1.2; }
-        #toggle-btn:hover { box-shadow: 0 8px 24px rgba(76, 175, 80, 0.35); transform: translateY(-2px); }
+
+        /* Footer */
+        .sq-footer {
+            margin-top: 20px;
+            padding-top: 12px;
+            border-top: 1px solid #e0e0e0;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            font-size: 0.8rem;
+            color: #757575;
+        }
+        .github-link {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            color: #757575;
+            text-decoration: none;
+            transition: color 0.2s;
+        }
+        .github-link:hover {
+            color: #212121;
+        }
+        .github-link svg {
+            width: 18px;
+            height: 18px;
+            fill: currentColor;
+        }
+
+        /* Toggle Button */
+        #toggle-btn {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            width: 56px;
+            height: 56px;
+            background: linear-gradient(135deg, #43A047 0%, #66BB6A 100%);
+            color: #fff;
+            border: none;
+            border-radius: 50%;
+            font-size: 13px;
+            font-weight: 600;
+            cursor: pointer;
+            z-index: 99998;
+            box-shadow: 0 6px 18px rgba(67, 160, 71, 0.3);
+            transition: all 0.25s ease;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            text-align: center;
+            line-height: 1.2;
+        }
+        #toggle-btn:hover {
+            box-shadow: 0 8px 24px rgba(67, 160, 71, 0.4);
+            transform: translateY(-2px) scale(1.05);
+        }
     `);
 
     const toggleBtn = document.createElement('button');
@@ -62,7 +256,6 @@
     toggleBtn.innerHTML = '深大<br>成绩';
     document.body.appendChild(toggleBtn);
 
-    // [新增] 从页面DOM中提取学号和姓名
     function getStudentInfoFromPage() {
         const allTds = document.querySelectorAll('td');
         for (const td of allTds) {
@@ -73,7 +266,6 @@
             if (text === '姓名' && td.nextElementSibling) {
                 scriptState.studentName = td.nextElementSibling.textContent.trim();
             }
-            // 如果都找到了，就提前退出循环
             if (scriptState.studentId && scriptState.studentName) {
                 break;
             }
@@ -84,18 +276,34 @@
         const container = document.createElement('div');
         container.id = 'score-query-container';
         container.className = 'hidden';
+        // [优化] 注入新的HTML结构
         container.innerHTML = `
-            <div class="header">
+            <div class="sq-header">
                 <h3>深圳大学成绩查询助手</h3>
-                <span class="close-btn"></span>
+                <button class="sq-close-btn" title="关闭">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
+                </button>
             </div>
-            <button id="start-query">开始查询成绩</button>
-            <div class="progress-container">
-                <div class="progress-bar"><div class="progress" id="progress"></div></div>
+
+            <div class="sq-content">
+                <div class="sq-actions">
+                    <button id="start-query" class="sq-btn">开始查询</button>
+                    <button id="export-scores" class="sq-btn" disabled>导出CSV</button>
+                </div>
+                <div class="progress-container">
+                    <div id="status">准备就绪</div>
+                    <div class="progress-bar"><div class="progress" id="progress"></div></div>
+                </div>
+                <div id="score-results"></div>
             </div>
-            <div id="status">准备就绪</div>
-            <div id="score-results"></div>
-            <button id="export-scores" class="export-btn" disabled>导出为CSV文件</button>
+
+            <div class="sq-footer">
+                <span>&copy; 2025 流年</span>
+                <a href="https://github.com/Liunian2000/GradeInquiry4SZU/" target="_blank" class="github-link" title="查看源码">
+                    <svg role="img" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><title>GitHub</title><path d="M12 .297c-6.63 0-12 5.373-12 12 0 5.303 3.438 9.8 8.205 11.385.6.113.82-.258.82-.577 0-.285-.01-1.04-.015-2.04-3.338.724-4.042-1.61-4.042-1.61C4.422 18.07 3.633 17.7 3.633 17.7c-1.087-.744.084-.729.084-.729 1.205.084 1.838 1.236 1.838 1.236 1.07 1.835 2.809 1.305 3.495.998.108-.776.417-1.305.76-1.605-2.665-.3-5.466-1.332-5.466-5.93 0-1.31.465-2.38 1.235-3.22-.135-.303-.54-1.523.105-3.176 0 0 1.005-.322 3.3 1.23.96-.267 1.98-.399 3-.405 1.02.006 2.04.138 3 .405 2.28-1.552 3.285-1.23 3.285-1.23.645 1.653.24 2.873.12 3.176.765.84 1.23 1.91 1.23 3.22 0 4.61-2.805 5.625-5.475 5.92.42.36.81 1.096.81 2.22 0 1.606-.015 2.896-.015 3.286 0 .315.21.69.825.57C20.565 22.092 24 17.592 24 12.297c0-6.627-5.373-12-12-12"/></svg>
+                    <span>GitHub</span>
+                </a>
+            </div>
         `;
         document.body.appendChild(container);
         scriptState.container = container;
@@ -105,14 +313,13 @@
         const statusEl = container.querySelector('#status');
         const progressEl = container.querySelector('#progress');
         const resultsEl = container.querySelector('#score-results');
-        const closeBtn = container.querySelector('.close-btn');
+        const closeBtn = container.querySelector('.sq-close-btn'); // [修改] 更新关闭按钮的选择器
 
         closeBtn.addEventListener('click', () => container.classList.add('hidden'));
 
         startBtn.addEventListener('click', async () => {
             if (scriptState.isRunning) return;
 
-            // [修改] 调用新函数从页面提取学生信息
             getStudentInfoFromPage();
 
             scriptState.isRunning = true;
