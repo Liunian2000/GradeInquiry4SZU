@@ -1,5 +1,5 @@
 // ==UserScript==
-// @name         深圳大学平时成绩&期末成绩查询 (优化版)
+// @name         深圳大学平时成绩&期末成绩查询
 // @namespace    http://tampermonkey.net/
 // @version      1.9
 // @description  UI优化
